@@ -9,7 +9,7 @@ It recommends relevant college events to users based on their interests, past in
 ## Architecture
 
 The recommendation pipeline works as follows:
-
+````
 User
   │
   ▼
@@ -32,7 +32,10 @@ Top-K Event Recommendations
   │
   ▼
 FastAPI Endpoint
+```` 
 ---
+
+
 
 ## Technologies Used
 
