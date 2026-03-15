@@ -5,11 +5,33 @@ It recommends relevant college events to users based on their interests, past in
 
 ---
 
+
 ## Architecture
 
-The system follows a hybrid recommendation pipeline:
+The recommendation pipeline works as follows:
 
-User → Embedding Similarity → FAISS Candidate Retrieval → Feature Engineering → LightGBM Ranking → MMR Diversity → Top-K Events
+User
+ │
+ ▼
+User Embeddings
+ │
+ ▼
+FAISS Candidate Retrieval
+ │
+ ▼
+Feature Engineering
+ │
+ ▼
+LightGBM Ranking Model
+ │
+ ▼
+MMR Diversification
+ │
+ ▼
+Top-K Event Recommendations
+ │
+ ▼
+FastAPI Endpoint
 
 ---
 
