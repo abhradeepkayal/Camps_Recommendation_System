@@ -11,28 +11,27 @@ It recommends relevant college events to users based on their interests, past in
 The recommendation pipeline works as follows:
 
 User
- │
- ▼
+  │
+  ▼
 User Embeddings
- │
- ▼
+  │
+  ▼
 FAISS Candidate Retrieval
- │
- ▼
+  │
+  ▼
 Feature Engineering
- │
- ▼
+  │
+  ▼
 LightGBM Ranking Model
- │
- ▼
+  │
+  ▼
 MMR Diversification
- │
- ▼
+  │
+  ▼
 Top-K Event Recommendations
- │
- ▼
+  │
+  ▼
 FastAPI Endpoint
-
 ---
 
 ## Technologies Used
