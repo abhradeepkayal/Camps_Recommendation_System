@@ -1,14 +1,15 @@
-# CAMPS Event Recommendation System
+# CAMPS Recommendation System
 
-This repository contains the backend recommendation system for the CAMPS platform.
-
-The system recommends relevant college events to users using a hybrid recommendation architecture.
+This repository contains the backend recommendation engine for the **CAMPS platform**.  
+It recommends relevant college events to users based on their interests, past interactions, and event metadata.
 
 ---
 
 ## Architecture
 
-User → Embeddings → FAISS Candidate Retrieval → Feature Engineering → LightGBM Ranking → MMR Diversity → Top K Events
+The system follows a hybrid recommendation pipeline:
+
+User → Embedding Similarity → FAISS Candidate Retrieval → Feature Engineering → LightGBM Ranking → MMR Diversity → Top-K Events
 
 ---
 
@@ -18,8 +19,8 @@ User → Embeddings → FAISS Candidate Retrieval → Feature Engineering → Li
 - FastAPI
 - LightGBM
 - FAISS
-- Pandas
 - NumPy
+- Pandas
 - Scikit-learn
 
 ---
@@ -30,7 +31,11 @@ User → Embeddings → FAISS Candidate Retrieval → Feature Engineering → Li
 
 GET /health
 
-Returns:
+Example:
+
+http://127.0.0.1:8000/health
+
+Response:
 
 {
   "status": "ok"
@@ -50,7 +55,7 @@ Returns top recommended events for the user.
 
 ---
 
-## Running the API
+## Running the API Locally
 
 Install dependencies:
 
@@ -75,7 +80,7 @@ scripts/
 recommend.py
 
 models/
-trained recommendation models
+trained model files (not included in repo)
 
 data/
-event and user datasets
+datasets used for training (not included in repo)
