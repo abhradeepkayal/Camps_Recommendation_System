@@ -3,9 +3,7 @@ import pandas as pd
 import joblib
 import faiss
 
-# =============================
-# Load models
-# =============================
+
 
 model_rank = joblib.load("models/lightgbm_ranker.pkl")
 encoders = joblib.load("models/encoders.pkl")
@@ -22,9 +20,7 @@ user_embeddings = np.load("models/user_embeddings.npy")
 item_embeddings = np.load("models/item_embeddings.npy")
 
 
-# =============================
-# Load datasets
-# =============================
+
 
 events_df = pd.read_csv("data/events.csv")
 users_df = pd.read_csv("data/users.csv")
@@ -38,9 +34,7 @@ def recommend(user_id, top_k=10):
     import numpy as np
     import pandas as pd
 
-    # =============================
-    # 1️⃣ Cold start
-    # =============================
+    
     if user_id not in user_index_map:
 
         cold = events_df.copy()
@@ -64,18 +58,14 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 2️⃣ User topic preferences
-    # =============================
+    
     user_topics = ranking_train_clean[
         ranking_train_clean["user_id"] == user_id
     ]["topic"].value_counts().index.tolist()
 
 
 
-    # =============================
-    # 3️⃣ FAISS candidate retrieval
-    # =============================
+    
     user_vec = user_embeddings[user_index_map[user_id]].reshape(1,-1).astype("float32")
 
     scores, items = faiss_index.search(user_vec, 1500)
@@ -85,9 +75,7 @@ def recommend(user_id, top_k=10):
     ]
 
 
-    # =============================
-    # 4️⃣ Popular candidates
-    # =============================
+    
     popular_items = (
         ranking_dataset
         .groupby("item_id")
@@ -99,9 +87,7 @@ def recommend(user_id, top_k=10):
     )
 
 
-    # =============================
-    # 5️⃣ Recent events
-    # =============================
+    
     recent_items = (
         events_df
         .sort_values("event_date", ascending=False)
@@ -110,32 +96,24 @@ def recommend(user_id, top_k=10):
     )
 
 
-    # =============================
-    # 6️⃣ Merge candidate pools
-    # =============================
+   
     candidate_items = list(set(faiss_candidates) | set(popular_items) | set(recent_items))
 
 
 
-    # =============================
-    # 7️⃣ Candidate dataframe
-    # =============================
+   
     candidates = pd.DataFrame({
         "user_id": user_id,
         "item_id": candidate_items
     })
 
 
-    # =============================
-    # 8️⃣ Merge metadata
-    # =============================
+    
     candidates = candidates.merge(events_df, on="item_id", how="left")
     candidates = candidates.merge(users_df, on="user_id", how="left")
 
 
-    # =============================
-    # 9️⃣ Remove past events
-    # =============================
+    
     candidates["days_until_event"] = (
         pd.to_datetime(candidates["event_date"], errors="coerce") - pd.Timestamp.now()
     ).dt.days
@@ -143,9 +121,7 @@ def recommend(user_id, top_k=10):
     candidates = candidates[candidates["days_until_event"] >= -1]
 
 
-    # =============================
-    # 🔟 Topic filtering
-    # =============================
+    
     if len(user_topics) > 0:
 
         topic_candidates = candidates[
@@ -157,9 +133,6 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 11️⃣ Haversine distance
-    # =============================
     def haversine(lat1, lon1, lat2, lon2):
 
         R = 6371
@@ -189,17 +162,13 @@ def recommend(user_id, top_k=10):
     )
 
 
-    # =============================
-    # 12️⃣ Time decay
-    # =============================
+    
     candidates["time_score"] = np.exp(
         -0.05 * candidates["days_until_event"].clip(lower=0)
     )
 
 
-    # =============================
-    # 13️⃣ Popularity
-    # =============================
+    
     pop = candidates["item_id"].map(
         ranking_dataset.groupby("item_id").size()
     ).fillna(0)
@@ -208,9 +177,7 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 14️⃣ Embedding similarity
-    # =============================
+   
     def emb_sim(row):
 
         u = row["user_id"]
@@ -237,9 +204,7 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 15️⃣ Ranking features
-    # =============================
+    
     X_test = candidates[feature_columns].copy().fillna(0)
 
     for col in encoders:
@@ -258,9 +223,7 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 16️⃣ LightGBM ranking
-    # =============================
+    
     pred = model_rank.predict(X_test)
 
     if len(pred.shape) == 2:
@@ -270,17 +233,13 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 17️⃣ Topic match
-    # =============================
+    
     candidates["topic_match"] = candidates["topic"].apply(
         lambda x: 1 if x in user_topics else 0
     )
 
 
-    # =============================
-    # 18️⃣ Distance score
-    # =============================
+    
     max_dist = candidates["geo_distance"].max() + 1e-6
 
     candidates["distance_score"] = 1 - (
@@ -288,9 +247,7 @@ def recommend(user_id, top_k=10):
     )
 
 
-    # =============================
-    # 19️⃣ Final blended score
-    # =============================
+    
     candidates["final_score"] = (
           0.45 * candidates["model_score"]
         + 0.20 * candidates["topic_match"]
@@ -301,9 +258,7 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 20️⃣ Exploration injection
-    # =============================
+   
     exploration_weight = 0.05
 
     candidates["final_score"] = (
@@ -313,9 +268,7 @@ def recommend(user_id, top_k=10):
 
 
 
-    # =============================
-    # 21️⃣ MMR Diversity
-    # =============================
+    
     selected = []
     remaining = candidates.copy()
     lambda_div = 0.7
@@ -363,10 +316,10 @@ def recommend(user_id, top_k=10):
     
     
 
-    # keep only id and score
+   
     result = result[["item_id","final_score"]]
     
-    # attach original metadata from events table
+    
     result = result.merge(
         events_df[
             [
