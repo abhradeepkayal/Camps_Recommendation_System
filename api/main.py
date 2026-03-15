@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# create API
+
 app = FastAPI()
 
-# allow frontend access
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,7 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# import recommender
+
 from scripts.recommend import recommend
 
 
